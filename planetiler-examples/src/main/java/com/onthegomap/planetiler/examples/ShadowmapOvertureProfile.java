@@ -106,6 +106,10 @@ public class ShadowmapOvertureProfile implements Profile {
 
     feature.setBufferPixels(isPart ? 128 : 64);
     feature.setPixelToleranceAtAllZooms(0);
+
+    if (feature.getAttrsAtZoom(0).containsKey("zenodoId")) {
+      feature.setPixelToleranceAtAllZooms(0.08);
+    }
   }
 
   private void processForest(SourceFeature source, FeatureCollector features) {
@@ -179,6 +183,8 @@ public class ShadowmapOvertureProfile implements Profile {
         feature.setAttr("googleId", recordId);
       } else if (dataset.equals("Esri Community Maps")) {
         feature.setAttr("esriId", recordId);
+      } else if (dataset.contains("zenodo")) {
+        feature.setAttr("zenodoId", recordId);
       }
     }
   }
