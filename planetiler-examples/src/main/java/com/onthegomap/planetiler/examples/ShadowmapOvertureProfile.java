@@ -185,6 +185,10 @@ public class ShadowmapOvertureProfile implements Profile {
         feature.setAttr("esriId", recordId);
       } else if (dataset.contains("zenodo")) {
         feature.setAttr("zenodoId", recordId);
+      } else if (dataset.equals("Instituto Geográfico Nacional (España)s")) {
+        feature.setAttr("ignId", recordId);
+      } else {
+        throw new RuntimeException("Unknown dataset: " + dataset);
       }
     }
   }
