@@ -166,29 +166,24 @@ public class ShadowmapOvertureProfile implements Profile {
   private static void setSourceIds(FeatureCollector.Feature feature, SourceFeature sourceFeature) {
     var sources = (ArrayList<HashMap<String, String>>) sourceFeature.getTag("sources");
 
+    feature.setAttr("overtureId", sourceFeature.getTag("id"));
+
     for (var sourceMap : sources) {
       var dataset = sourceMap.get("dataset");
       var recordId = sourceMap.get("record_id");
+      var updateTime = sourceMap.get("update_time");
 
-      if (dataset.equals("Microsoft ML Buildings")) {
-        feature.setAttr("msId", recordId);
-      } else if (dataset.equals("OpenStreetMap")) {
+      if (updateTime != null) {
+        feature.setAttr("updateTime", updateTime);
+      }
+
+      if (dataset.equals("OpenStreetMap")) {
         String osmIdWithType = recordId.split("@")[0];
         String osmType = osmIdWithType.substring(0, 1);
         String osmId = osmIdWithType.substring(1);
 
         feature.setAttr("osmType", osmType);
         feature.setAttr("osmId", Long.parseLong(osmId));
-      } else if (dataset.equals("Google Open Buildings")) {
-        feature.setAttr("googleId", recordId);
-      } else if (dataset.equals("Esri Community Maps")) {
-        feature.setAttr("esriId", recordId);
-      } else if (dataset.contains("zenodo")) {
-        feature.setAttr("zenodoId", recordId);
-      } else if (dataset.equals("Instituto Geográfico Nacional (España)s")) {
-        feature.setAttr("ignId", recordId);
-      } else {
-        throw new RuntimeException("Unknown dataset: " + dataset);
       }
     }
   }
