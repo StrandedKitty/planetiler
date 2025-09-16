@@ -174,7 +174,7 @@ public class ShadowmapOvertureProfile implements Profile {
       var updateTime = sourceMap.get("update_time");
 
       if (updateTime != null) {
-        feature.setAttr("updateTime", updateTime);
+        feature.setAttr("updateTime", updateTime.split("T")[0]);
       }
 
       if (dataset.equals("OpenStreetMap")) {
