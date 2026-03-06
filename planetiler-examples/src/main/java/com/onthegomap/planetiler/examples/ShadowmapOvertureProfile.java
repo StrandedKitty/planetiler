@@ -266,10 +266,12 @@ public class ShadowmapOvertureProfile implements Profile {
             if (intersects) {
               var outlineOsmId = outline.feature.tags().get("osmId");
               var outlineOsmType = outline.feature.tags().get("osmType");
+              var outlineOvertureId = outline.feature.tags().get("overtureId");
 
               if (outlineOsmId != null) {
                 part.feature.setTag("outlineOsmId", outlineOsmId);
                 part.feature.setTag("outlineOsmType", outlineOsmType);
+                part.feature.setTag("outlineOvertureId", outlineOvertureId);
               }
 
               outline.geometryCopy = geometryDifference(outline.geometryCopy, part.geometry);
