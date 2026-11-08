@@ -93,6 +93,11 @@ public class ShadowmapOvertureProfile implements Profile {
       .setAttr("roofShape", source.getTag("roof_shape"))
       .setAttr("roofDirection", source.getTag("roof_direction"))
       .setAttr("roofOrientation", source.getTag("roof_orientation"))
+      .setAttr("roofHeight", source.getTag("roof_height"))
+      .setAttr("roofColor", source.getTag("roof_color"))
+      .setAttr("roofMaterial", source.getTag("roof_material"))
+      .setAttr("facadeColor", source.getTag("facade_color"))
+      .setAttr("facadeMaterial", source.getTag("facade_material"))
       .setAttr("isPart", isPart);
 
     var roofShape = source.getTag("roof_shape");
