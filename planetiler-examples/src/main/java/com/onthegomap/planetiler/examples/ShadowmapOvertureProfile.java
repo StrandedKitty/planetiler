@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Example basemap using <a href="https://overturemaps.org/">Overture Maps</a> data.
@@ -112,7 +113,7 @@ public class ShadowmapOvertureProfile implements Profile {
     feature.setBufferPixels(isPart ? 128 : 64);
     feature.setPixelToleranceAtAllZooms(0);
 
-    if (feature.getAttrsAtZoom(0).containsKey("zenodoId")) {
+    if (hasProvider(source, PROVIDER_ZENODO)) {
       feature.setPixelToleranceAtAllZooms(0.08);
     }
   }
@@ -169,28 +170,91 @@ public class ShadowmapOvertureProfile implements Profile {
   }
 
   private static void setSourceIds(FeatureCollector.Feature feature, SourceFeature sourceFeature) {
-    var sources = (ArrayList<HashMap<String, String>>) sourceFeature.getTag("sources");
-
     feature.setAttr("overtureId", sourceFeature.getTag("id"));
 
-    for (var sourceMap : sources) {
-      var dataset = sourceMap.get("dataset");
-      var recordId = sourceMap.get("record_id");
-      var updateTime = sourceMap.get("update_time");
+    for (var sourceMap : getSources(sourceFeature)) {
+      var recordId = getString(sourceMap, "record_id");
+      var updateTime = getString(sourceMap, "update_time");
 
       if (updateTime != null) {
         feature.setAttr("updateTime", updateTime.split("T")[0]);
       }
 
-      if (dataset.equals("OpenStreetMap")) {
+      if (PROVIDER_OSM.equals(getProvider(sourceMap)) && recordId != null) {
+        // OSM record ids look like "w123456@7" (type, id, @version)
         String osmIdWithType = recordId.split("@")[0];
-        String osmType = osmIdWithType.substring(0, 1);
-        String osmId = osmIdWithType.substring(1);
 
-        feature.setAttr("osmType", osmType);
-        feature.setAttr("osmId", Long.parseLong(osmId));
+        if (osmIdWithType.length() < 2) {
+          continue;
+        }
+
+        try {
+          long osmId = Long.parseLong(osmIdWithType.substring(1));
+          feature.setAttr("osmType", osmIdWithType.substring(0, 1));
+          feature.setAttr("osmId", osmId);
+        } catch (NumberFormatException e) {
+          // unexpected record id format, skip
+        }
       }
     }
+  }
+
+  private static final String PROVIDER_OSM = "osm";
+  private static final String PROVIDER_ZENODO = "zenodo";
+
+  /** Returns the feature's {@code sources} entries, or an empty list if the column is missing or null. */
+  private static List<Map<?, ?>> getSources(SourceFeature sourceFeature) {
+    if (!(sourceFeature.getTag("sources") instanceof List<?> sources)) {
+      return List.of();
+    }
+
+    var result = new ArrayList<Map<?, ?>>(sources.size());
+
+    for (var item : sources) {
+      if (item instanceof Map<?, ?> map) {
+        result.add(map);
+      }
+    }
+
+    return result;
+  }
+
+  private static String getString(Map<?, ?> map, String key) {
+    return map.get(key) instanceof String s && !s.isEmpty() ? s : null;
+  }
+
+  /**
+   * Returns the source's {@code provider} (added in Overture schema v1.18), falling back to the deprecated
+   * {@code dataset} label for older releases.
+   */
+  private static String getProvider(Map<?, ?> sourceMap) {
+    var provider = getString(sourceMap, "provider");
+
+    if (provider != null) {
+      return provider;
+    }
+
+    var dataset = getString(sourceMap, "dataset");
+
+    if (dataset == null) {
+      return null;
+    } else if (dataset.equals("OpenStreetMap")) {
+      return PROVIDER_OSM;
+    } else if (dataset.contains("zenodo")) {
+      return PROVIDER_ZENODO;
+    }
+
+    return dataset;
+  }
+
+  private static boolean hasProvider(SourceFeature sourceFeature, String provider) {
+    for (var sourceMap : getSources(sourceFeature)) {
+      if (provider.equals(getProvider(sourceMap))) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static void setLeafType(FeatureCollector.Feature feature, SourceFeature sourceFeature) {
