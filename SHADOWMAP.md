@@ -15,7 +15,8 @@ cd /mnt
 sudo mkdir big
 sudo mkfs.ext4 /dev/nvme1n1
 sudo mount -t ext4 /dev/nvme1n1 /mnt/big
-sudo chmod 777 -R /mnt/big  sudo cp -r ~/planetiler /mnt/big/planetiler
+sudo chmod 777 -R /mnt/big
+sudo cp -r ~/planetiler /mnt/big/planetiler
 
 cd /mnt/big/planetiler
 
